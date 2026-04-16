@@ -7,7 +7,7 @@ namespace LineageGraph.Web.Services;
 
 public interface IGraphService
 {
-    Task<List<NodeSearchResult>> SearchByDataNameAsync(string dataName);
+    Task<List<NodeSearchResult>> SearchByInputsAsync(string? input1, string? input2, string? input3, string? input4);
     Task<Node?> GetNodeByIdAsync(int id);
     Task<List<LineageItem>> GetSuccessorsAsync(int nodeId, int maxDepth = 10);
     Task<List<LineageItem>> GetPredecessorsAsync(int nodeId, int maxDepth = 10);
@@ -24,12 +24,56 @@ public class GraphService : IGraphService
         _connectionString = configuration.GetConnectionString("LineageDb") ?? "";
     }
 
-    public async Task<List<NodeSearchResult>> SearchByDataNameAsync(string dataName)
+    public async Task<List<NodeSearchResult>> SearchByInputsAsync(string? input1, string? input2, string? input3, string? input4)
     {
+        // Build dynamic query based on provided inputs
+        var query = _context.Nodes.AsQueryable();
+
+        // Get all edges that match any of the inputs
+        var matchingNodeIds = new List<int>();
+
+        if (!string.IsNullOrWhiteSpace(input1) || !string.IsNullOrWhiteSpace(input2) ||
+            !string.IsNullOrWhiteSpace(input3) || !string.IsNullOrWhiteSpace(input4))
+        {
+            var edgeQuery = _context.Edges.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(input1))
+                edgeQuery = edgeQuery.Where(e => e.DataName.Contains(input1));
+            else if (!string.IsNullOrWhiteSpace(input2))
+                edgeQuery = edgeQuery.Where(e => e.DataName.Contains(input2));
+            else if (!string.IsNullOrWhiteSpace(input3))
+                edgeQuery = edgeQuery.Where(e => e.DataName.Contains(input3));
+            else if (!string.IsNullOrWhiteSpace(input4))
+                edgeQuery = edgeQuery.Where(e => e.DataName.Contains(input4));
+
+            // If multiple inputs provided, use AND logic
+            var inputs = new List<string>();
+            if (!string.IsNullOrWhiteSpace(input1)) inputs.Add(input1);
+            if (!string.IsNullOrWhiteSpace(input2)) inputs.Add(input2);
+            if (!string.IsNullOrWhiteSpace(input3)) inputs.Add(input3);
+            if (!string.IsNullOrWhiteSpace(input4)) inputs.Add(input4);
+
+            if (inputs.Count > 0)
+            {
+                // Get nodes that match ANY of the inputs
+                matchingNodeIds = await _context.Edges
+                    .Where(e => inputs.Any(i => e.DataName.Contains(i)))
+                    .Select(e => e.SourceNodeId)
+                    .Union(
+                        _context.Edges
+                            .Where(e => inputs.Any(i => e.DataName.Contains(i)))
+                            .Select(e => e.TargetNodeId)
+                    )
+                    .Distinct()
+                    .ToListAsync();
+            }
+        }
+
+        if (matchingNodeIds.Count == 0)
+            return new List<NodeSearchResult>();
+
         var results = await _context.Nodes
-            .Where(n => _context.Edges.Any(e =>
-                (e.SourceNodeId == n.Id || e.TargetNodeId == n.Id) &&
-                e.DataName.Contains(dataName)))
+            .Where(n => matchingNodeIds.Contains(n.Id))
             .Select(n => new NodeSearchResult
             {
                 Id = n.Id,
@@ -39,6 +83,8 @@ public class GraphService : IGraphService
                 SuccessorCount = _context.Edges.Count(e => e.SourceNodeId == n.Id),
                 PredecessorCount = _context.Edges.Count(e => e.TargetNodeId == n.Id)
             })
+            .OrderBy(n => n.Id)
+            .Take(100) // Limit results
             .ToListAsync();
 
         return results;

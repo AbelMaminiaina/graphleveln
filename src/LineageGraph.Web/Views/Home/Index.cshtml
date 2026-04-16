@@ -4,36 +4,69 @@
 }
 
 <div class="row justify-content-center">
-    <div class="col-md-8">
+    <div class="col-md-10">
         <div class="card shadow">
             <div class="card-header bg-primary text-white">
                 <h4 class="mb-0">Recherche de Lineage</h4>
             </div>
             <div class="card-body">
                 <form asp-action="Search" method="post">
-                    <div class="row g-3 align-items-end">
-                        <div class="col-md-9">
-                            <label class="form-label">Nom de la donnee (input/output)</label>
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Input 1</label>
                             <input type="text"
-                                   asp-for="DataName"
-                                   class="form-control form-control-lg"
-                                   placeholder="Ex: DATA_1_O1, DATA_5, etc."
+                                   asp-for="Input1"
+                                   class="form-control"
+                                   placeholder="Ex: DATA_1_O1"
                                    autofocus />
-                            <span asp-validation-for="DataName" class="text-danger"></span>
                         </div>
                         <div class="col-md-3">
-                            <button type="submit" class="btn btn-primary btn-lg w-100">
-                                Rechercher
-                            </button>
+                            <label class="form-label">Input 2</label>
+                            <input type="text"
+                                   asp-for="Input2"
+                                   class="form-control"
+                                   placeholder="Ex: DATA_2_O1" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Input 3</label>
+                            <input type="text"
+                                   asp-for="Input3"
+                                   class="form-control"
+                                   placeholder="Ex: DATA_3_O1" />
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Input 4</label>
+                            <input type="text"
+                                   asp-for="Input4"
+                                   class="form-control"
+                                   placeholder="Ex: DATA_4_O1" />
                         </div>
                     </div>
+                    <div class="row mt-3">
+                        <div class="col-12 text-center">
+                            <button type="submit" class="btn btn-primary btn-lg px-5">
+                                Rechercher
+                            </button>
+                            <a href="/" class="btn btn-outline-secondary btn-lg px-4 ms-2">
+                                Effacer
+                            </a>
+                        </div>
+                    </div>
+                    @if (!ViewContext.ModelState.IsValid)
+                    {
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div asp-validation-summary="All" class="alert alert-danger"></div>
+                            </div>
+                        </div>
+                    }
                 </form>
             </div>
         </div>
     </div>
 </div>
 
-@if (Model.Results.Any())
+@if (Model.HasSearched && Model.Results.Any())
 {
     <div class="row mt-4">
         <div class="col-12">
@@ -57,7 +90,7 @@
                         <tbody>
                             @foreach (var node in Model.Results)
                             {
-                                <tr class="node-card">
+                                <tr>
                                     <td><strong>@node.Id</strong></td>
                                     <td>@node.Transformation</td>
                                     <td>@(node.Proprietaire ?? "-")</td>
@@ -84,10 +117,10 @@
         </div>
     </div>
 }
-else if (!string.IsNullOrEmpty(Model.DataName))
+else if (Model.HasSearched)
 {
     <div class="alert alert-info mt-4">
-        Aucun resultat trouve pour "<strong>@Model.DataName</strong>"
+        Aucun resultat trouve pour les criteres specifies.
     </div>
 }
 
@@ -97,9 +130,9 @@ else if (!string.IsNullOrEmpty(Model.DataName))
             <div class="card-body">
                 <h6>Exemples de recherche:</h6>
                 <ul class="mb-0">
-                    <li><code>DATA_1</code> - Recherche toutes les donnees contenant "DATA_1"</li>
-                    <li><code>DATA_5_O1</code> - Recherche une donnee specifique</li>
-                    <li><code>O2</code> - Recherche tous les outputs de type O2</li>
+                    <li><code>Input1: DATA_1</code> - Recherche les donnees contenant "DATA_1"</li>
+                    <li><code>Input1: DATA_5_O1, Input2: DATA_6_O2</code> - Recherche avec plusieurs criteres</li>
+                    <li><code>Input1: O2</code> - Recherche tous les outputs de type O2</li>
                 </ul>
             </div>
         </div>
