@@ -1,0 +1,194 @@
+@model LineageGraph.Web.Models.GraphViewModel
+@{
+    ViewData["Title"] = $"Graphe - {Model.Transformation}";
+}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="/">Recherche</a></li>
+        <li class="breadcrumb-item active">@Model.Transformation</li>
+    </ol>
+</nav>
+
+<div class="card shadow mb-4">
+    <div class="card-header bg-primary text-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">@Model.Transformation</h4>
+            <span class="badge bg-light text-dark">Node #@Model.NodeId</span>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Proprietaire:</strong> @(Model.Proprietaire ?? "Non defini")</p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <span class="badge bg-danger me-2">@Model.Predecessors.Count Predecesseurs</span>
+                <span class="badge bg-success">@Model.Successors.Count Successeurs</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Tableau Predecesseurs -->
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow table-predecessors">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">
+                    Predecesseurs (Upstream)
+                    <span class="badge bg-light text-dark float-end">@Model.Predecessors.Count</span>
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                @if (Model.Predecessors.Any())
+                {
+                    <table class="table table-sm mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Depth</th>
+                                <th>ID</th>
+                                <th>Transformation</th>
+                                <th>Data</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Predecessors.OrderBy(p => p.Depth))
+                            {
+                                var depthClass = $"depth-{Math.Min(item.Depth, 5)}";
+                                <tr class="@depthClass">
+                                    <td>
+                                        <span class="badge bg-secondary">@item.Depth</span>
+                                    </td>
+                                    <td><strong>@item.NodeId</strong></td>
+                                    <td>
+                                        @item.Transformation
+                                        <br/>
+                                        <small class="text-muted">@item.Proprietaire</small>
+                                    </td>
+                                    <td>
+                                        <code>@item.DataName</code>
+                                    </td>
+                                    <td>
+                                        <a href="/Graph/Details/@item.NodeId" class="btn btn-sm btn-outline-danger">
+                                            Voir
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="p-4 text-center text-muted">
+                        <em>Aucun predecesseur (noeud source)</em>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Tableau Successeurs -->
+    <div class="col-lg-6 mb-4">
+        <div class="card shadow table-successors">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    Successeurs (Downstream)
+                    <span class="badge bg-light text-dark float-end">@Model.Successors.Count</span>
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                @if (Model.Successors.Any())
+                {
+                    <table class="table table-sm mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Depth</th>
+                                <th>ID</th>
+                                <th>Transformation</th>
+                                <th>Data</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Successors.OrderBy(s => s.Depth))
+                            {
+                                var depthClass = $"depth-{Math.Min(item.Depth, 5)}";
+                                <tr class="@depthClass">
+                                    <td>
+                                        <span class="badge bg-secondary">@item.Depth</span>
+                                    </td>
+                                    <td><strong>@item.NodeId</strong></td>
+                                    <td>
+                                        @item.Transformation
+                                        <br/>
+                                        <small class="text-muted">@item.Proprietaire</small>
+                                    </td>
+                                    <td>
+                                        <code>@item.DataName</code>
+                                    </td>
+                                    <td>
+                                        <a href="/Graph/Details/@item.NodeId" class="btn btn-sm btn-outline-success">
+                                            Voir
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="p-4 text-center text-muted">
+                        <em>Aucun successeur (noeud terminal)</em>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Visualisation des chemins -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header">
+                <h5 class="mb-0">Chemins de Lineage</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-danger">Chemins Predecesseurs:</h6>
+                        @if (Model.Predecessors.Any())
+                        {
+                            @foreach (var item in Model.Predecessors.DistinctBy(p => p.Path).Take(10))
+                            {
+                                <div class="path-display mb-1">@item.Path</div>
+                            }
+                        }
+                        else
+                        {
+                            <em class="text-muted">Aucun</em>
+                        }
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-success">Chemins Successeurs:</h6>
+                        @if (Model.Successors.Any())
+                        {
+                            @foreach (var item in Model.Successors.DistinctBy(s => s.Path).Take(10))
+                            {
+                                <div class="path-display mb-1">@item.Path</div>
+                            }
+                        }
+                        else
+                        {
+                            <em class="text-muted">Aucun</em>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

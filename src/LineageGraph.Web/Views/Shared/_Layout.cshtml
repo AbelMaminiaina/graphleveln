@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - LineageGraph</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        .depth-1 { background-color: #e3f2fd; }
+        .depth-2 { background-color: #bbdefb; }
+        .depth-3 { background-color: #90caf9; }
+        .depth-4 { background-color: #64b5f6; }
+        .depth-5 { background-color: #42a5f5; }
+        .table-successors { border-left: 4px solid #28a745; }
+        .table-predecessors { border-left: 4px solid #dc3545; }
+        .node-card { transition: all 0.3s; }
+        .node-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        .path-display { font-family: monospace; font-size: 0.85em; color: #666; }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <strong>LineageGraph</strong>
+            </a>
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">Recherche</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="container mt-4">
+        @RenderBody()
+    </main>
+
+    <footer class="container mt-5 mb-3 text-center text-muted">
+        <small>LineageGraph - Visualisation de lignage de donnees</small>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

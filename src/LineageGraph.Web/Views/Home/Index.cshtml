@@ -1,0 +1,107 @@
+@model LineageGraph.Web.Models.SearchViewModel
+@{
+    ViewData["Title"] = "Recherche";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">Recherche de Lineage</h4>
+            </div>
+            <div class="card-body">
+                <form asp-action="Search" method="post">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-9">
+                            <label class="form-label">Nom de la donnee (input/output)</label>
+                            <input type="text"
+                                   asp-for="DataName"
+                                   class="form-control form-control-lg"
+                                   placeholder="Ex: DATA_1_O1, DATA_5, etc."
+                                   autofocus />
+                            <span asp-validation-for="DataName" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="submit" class="btn btn-primary btn-lg w-100">
+                                Rechercher
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (Model.Results.Any())
+{
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header">
+                    <h5 class="mb-0">Resultats (@Model.Results.Count transformations trouvees)</h5>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>ID</th>
+                                <th>Transformation</th>
+                                <th>Proprietaire</th>
+                                <th>Type</th>
+                                <th class="text-center">Predecesseurs</th>
+                                <th class="text-center">Successeurs</th>
+                                <th class="text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var node in Model.Results)
+                            {
+                                <tr class="node-card">
+                                    <td><strong>@node.Id</strong></td>
+                                    <td>@node.Transformation</td>
+                                    <td>@(node.Proprietaire ?? "-")</td>
+                                    <td>
+                                        <span class="badge bg-secondary">Type @node.IdType</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-danger">@node.PredecessorCount</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-success">@node.SuccessorCount</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <a href="/Graph/Details/@node.Id" class="btn btn-sm btn-outline-primary">
+                                            Voir Graphe
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else if (!string.IsNullOrEmpty(Model.DataName))
+{
+    <div class="alert alert-info mt-4">
+        Aucun resultat trouve pour "<strong>@Model.DataName</strong>"
+    </div>
+}
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card bg-light">
+            <div class="card-body">
+                <h6>Exemples de recherche:</h6>
+                <ul class="mb-0">
+                    <li><code>DATA_1</code> - Recherche toutes les donnees contenant "DATA_1"</li>
+                    <li><code>DATA_5_O1</code> - Recherche une donnee specifique</li>
+                    <li><code>O2</code> - Recherche tous les outputs de type O2</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
